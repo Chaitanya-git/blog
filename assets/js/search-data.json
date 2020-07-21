@@ -29,7 +29,7 @@
   
       ,"page1": {
           "title": "About Me",
-          "content": "This is where you put the contents of your About page. Like all your pages, it’s in Markdown format. . This website is powered by fastpages 1. . a blogging platform that natively supports Jupyter notebooks in addition to other formats. &#8617; . |",
+          "content": "Hi! I’m Chaitanya, a college student currently pursuing a Bachelor’s in Computer Science Engineering. I’m a self proclaimed geek, a tinkerer and an open source enthusiast. I’m always looking for new opportunites for using technology to build cool new things that can solve real world problems and help improve the world around me. . Areas of Interest . Computer Vision | Natural Language Processing | Deep learning | Robotics | Frugal innovation | .",
           "url": "https://chaitanya-git.github.io/blog/about/",
           "relUrl": "/about/",
           "date": ""
@@ -40,6 +40,22 @@
   
 
   
+      ,"page3": {
+          "title": "Projects",
+          "content": "",
+          "url": "https://chaitanya-git.github.io/blog/projects/",
+          "relUrl": "/projects/",
+          "date": ""
+      }
+      
+  
+
+  
+  
+
+  
+
+  
   
 
   
@@ -48,18 +64,13 @@
   
 
   
-
-  
   
 
   
   
 
   
-  
-
-  
-      ,"page10": {
+      ,"page11": {
           "title": "",
           "content": "Sitemap: {{ “sitemap.xml” | absolute_url }} | .",
           "url": "https://chaitanya-git.github.io/blog/robots.txt",

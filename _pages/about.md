@@ -4,10 +4,13 @@ title: About Me
 permalink: /about/
 ---
 
-This is where you put the contents of your *About* page. Like all your pages, it's in [Markdown](https://guides.github.com/features/mastering-markdown/) format.
+Hi! I'm Chaitanya, a college student currently pursuing a Bachelor's in Computer Science Engineering. I'm a self proclaimed geek, a tinkerer and an open source enthusiast. I'm always looking for new opportunites for using technology to build cool new things that can solve real world problems and help improve the world around me.
 
-This website is powered by **[fastpages](https://github.com/fastai/fastpages)** [^1].
+## Areas of Interest
+- Computer Vision
+- Natural Language Processing
+- Deep learning
+- Robotics
+- Frugal innovation
 
 
-
-[^1]:a blogging platform that natively supports Jupyter notebooks in addition to other formats.

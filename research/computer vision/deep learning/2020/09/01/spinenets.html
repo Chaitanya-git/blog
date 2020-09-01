@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>SpineNets: A cool new way to design convolutional networks | Chaitanya’s blog</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="SpineNets: A cool new way to design convolutional networks" />
+<meta name="author" content="Chaitanya" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="An overview and analysis of the paper “SpineNet: Learning Scale-Permuted Backbone for Recognition and Localization”" />
+<meta property="og:description" content="An overview and analysis of the paper “SpineNet: Learning Scale-Permuted Backbone for Recognition and Localization”" />
+<link rel="canonical" href="https://chaitanya-git.github.io/blog/research/computer%20vision/deep%20learning/2020/09/01/spinenets.html" />
+<meta property="og:url" content="https://chaitanya-git.github.io/blog/research/computer%20vision/deep%20learning/2020/09/01/spinenets.html" />
+<meta property="og:site_name" content="Chaitanya’s blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-09-01T00:00:00-05:00" />
+<script type="application/ld+json">
+{"author":{"@type":"Person","name":"Chaitanya"},"description":"An overview and analysis of the paper “SpineNet: Learning Scale-Permuted Backbone for Recognition and Localization”","@type":"BlogPosting","url":"https://chaitanya-git.github.io/blog/research/computer%20vision/deep%20learning/2020/09/01/spinenets.html","dateModified":"2020-09-01T00:00:00-05:00","datePublished":"2020-09-01T00:00:00-05:00","headline":"SpineNets: A cool new way to design convolutional networks","mainEntityOfPage":{"@type":"WebPage","@id":"https://chaitanya-git.github.io/blog/research/computer%20vision/deep%20learning/2020/09/01/spinenets.html"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://chaitanya-git.github.io/blog/feed.xml" title="Chaitanya's blog" /><link rel="shortcut icon" type="image/x-icon" href="/blog/images/favicon.ico"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>SpineNets: A cool new way to design convolutional networks | Chaitanya’s blog</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="SpineNets: A cool new way to design convolutional networks" />
+<meta name="author" content="Chaitanya" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="An overview and analysis of the paper “SpineNet: Learning Scale-Permuted Backbone for Recognition and Localization”" />
+<meta property="og:description" content="An overview and analysis of the paper “SpineNet: Learning Scale-Permuted Backbone for Recognition and Localization”" />
+<link rel="canonical" href="https://chaitanya-git.github.io/blog/research/computer%20vision/deep%20learning/2020/09/01/spinenets.html" />
+<meta property="og:url" content="https://chaitanya-git.github.io/blog/research/computer%20vision/deep%20learning/2020/09/01/spinenets.html" />
+<meta property="og:site_name" content="Chaitanya’s blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-09-01T00:00:00-05:00" />
+<script type="application/ld+json">
+{"author":{"@type":"Person","name":"Chaitanya"},"description":"An overview and analysis of the paper “SpineNet: Learning Scale-Permuted Backbone for Recognition and Localization”","@type":"BlogPosting","url":"https://chaitanya-git.github.io/blog/research/computer%20vision/deep%20learning/2020/09/01/spinenets.html","dateModified":"2020-09-01T00:00:00-05:00","datePublished":"2020-09-01T00:00:00-05:00","headline":"SpineNets: A cool new way to design convolutional networks","mainEntityOfPage":{"@type":"WebPage","@id":"https://chaitanya-git.github.io/blog/research/computer%20vision/deep%20learning/2020/09/01/spinenets.html"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+<link href="https://unpkg.com/@primer/css/dist/primer.css" rel="stylesheet" />
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css"><link type="application/atom+xml" rel="alternate" href="https://chaitanya-git.github.io/blog/feed.xml" title="Chaitanya's blog" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css" integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"> </script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js" integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head><body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/blog/">Chaitanya&#39;s blog</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/blog/about/">About Me</a><a class="page-link" href="/blog/projects/">My Projects</a><a class="page-link" href="/blog/search/">Search</a><a class="page-link" href="/blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">SpineNets: A cool new way to design convolutional networks</h1><p class="page-description">An overview and analysis of the paper "SpineNet: Learning Scale-Permuted Backbone for Recognition and Localization"</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2020-09-01T00:00:00-05:00" itemprop="datePublished">
+        Sep 1, 2020
+      </time>• 
+          <span itemprop="author" itemscope itemtype="http://schema.org/Person">
+            <span class="p-author h-card" itemprop="name">Chaitanya</span></span>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      17 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/blog/categories/#research">research</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blog/categories/#computer vision">computer vision</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blog/categories/#deep learning">deep learning</a>
+        
+      
+      </p>
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h2"><a href="#introduction">Introduction</a></li>
+<li class="toc-entry toc-h2"><a href="#the-scale-permuted-architecture">The ‘scale-permuted’ architecture</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#a-closer-look-at-cross-scale-connections">A closer look at cross-scale connections</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#building-or-learning-scale-permuted-architectures">Building (or learning) scale-permuted architectures</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#search-space-for-learning-the-optimal-architecture">Search space for learning the optimal architecture</a>
+<ul>
+<li class="toc-entry toc-h4"><a href="#scale-permutations">Scale permutations</a></li>
+<li class="toc-entry toc-h4"><a href="#cross-scale-connections">Cross-scale connections</a></li>
+<li class="toc-entry toc-h4"><a href="#block-adjustments">Block adjustments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#experiments-and-results">Experiments and Results</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#scale-permuted-resnet-50">Scale permuted ResNet-50</a></li>
+<li class="toc-entry toc-h3"><a href="#spinenets">SpineNets</a>
+<ul>
+<li class="toc-entry toc-h4"><a href="#generating-larger-spinenets">Generating larger SpineNets</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h3"><a href="#object-detection-and-instance-segmentation">Object detection and instance segmentation</a>
+<ul>
+<li class="toc-entry toc-h4"><a href="#single-stage-object-detection-with-retinanet">Single-stage object detection with RetinaNet</a></li>
+<li class="toc-entry toc-h4"><a href="#two-stage-object-detection-with-mask-rcnn">Two-stage object detection with Mask-RCNN</a></li>
+<li class="toc-entry toc-h4"><a href="#real-time-object-detection">Real-time object detection</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h3"><a href="#image-classification">Image classification</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#conclusion">Conclusion</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#key-takeaways">Key Takeaways</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#references">References</a></li>
+</ul><h2 id="introduction">
+<a class="anchor" href="#introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introduction</h2>
+<p>Ever since their introduction in 2012, Convolutional Neural Networks have slowly become the cornerstone for solving computer vision tasks with deep learning. They have worked phenomenally well for several vision-related tasks such as image classification, object detection and instance segmentation. They have since also been applied successfully in Natural Language Processing tasks such as sentiment analysis.</p>
+
+<p>However, the fundamental network architecture of convolutional networks have primarily remained the same, with each layer producing a feature map of increasingly lower resolution, but higher depth. Such an architecture has allowed CNNs to efficiently extract a large number of high-level features from images while keeping resource requirements under check while without compromising performance.</p>
+
+<p width="100%"><img src="/blog/images/SpineNet/cnn.png" alt="CNN Architecture Image" title="Example of a traditional CNN network. (VGG 16)"></p>
+
+<p>Such architectures are ‘scale-decreasing’ since they progressively reduce the spatial resolution of the feature map. This makes sense for tasks like image classification that only require the network to report on whether or not an object exists in an image, without having to locate where in the image it is present. For such decisions, extracting high-level features were more important than maintaining spatial information.</p>
+
+<p>In tasks such as object detection, a model must not only recognize objects but must also locate the object in the image. In such scenarios, scale-decreasing architectures cannot directly be applied as they sacrifice spatial information in favour of extracting semantic features. This problem has traditionally been solved using encoder-decoder networks, where an additional decoder network is attached to the scale decreasing network. This decoder tries to recover the lost spatial information to localize an object in an image.</p>
+
+<p>While this has proved to perform well, the authors of the paper argue this is not optimal. They instead propose a scale permuted architecture. The rationale they provide is that for tasks like object detection, the preservation of spatial information is essential to be able to detect the location of an object in an image accurately. A scale permuted architecture will be able to preserve spatial information better by using ‘cross-scale features’. Cross-scale features combine the spatial information from feature maps of different resolutions or scales. Features that are computed at a higher resolution will help detect smaller objects and those computed at lower resolutions can help detect larger objects. In a scale permuted network, the size of feature maps can both increase and decrease with depth, unlike scale decreasing architectures, where increasing the size of feature maps is not allowed.</p>
+
+<p>They back their claims with experiments that show how learning an optimal permutation of the blocks of a standard ResNet-50 using Neural Architecture Search (NAS) can improve its performance. They go on to use NAS to come up with the SpineNet models that achieve better accuracy in object recognition and localization tasks and can match the previous state of the art in image classification while using less compute.</p>
+
+<h2 id="the-scale-permuted-architecture">
+<a class="anchor" href="#the-scale-permuted-architecture" aria-hidden="true"><span class="octicon octicon-link"></span></a>The ‘scale-permuted’ architecture</h2>
+
+<p width="100%"><img src="/blog/images/SpineNet/scale_permuted_general.png" alt="Scale permuted architecture image" title="Scale decreasing vs Scale permuted architecture. source: [0]"></p>
+
+<p>The typical scale permuted architecture envisioned by the authors consists of two sections:</p>
+<ol>
+  <li>A stem network which uses a standard scale decreasing architecture to learn a set of base features.</li>
+  <li>The scale permuted layers that are stacked on top of the stem network.</li>
+</ol>
+
+<p>The scale permuted layers/blocks are picked from a predetermined list of blocks ${B_1, B_2, \ldots, B_n}$. Each of these blocks has an associated level $L_i$. A block at level $L_i$ has a resolution of $1/2^i$ of the input image resolution. Each block can be fed multiple inputs from prior blocks of multiple sizes. Some of these blocks may be connected to one or more layers of the stem network. These connections are termed as cross-scale connections.</p>
+
+<p>In this paper, the models tested set 5 blocks (levels $L_3$ to $L_7$) as output blocks. In contrast, the remaining blocks are designated as intermediate blocks. The output blocks are meant to provide cross-scale features that can then be fed to subnets for classification, object recognition and localization or other vision tasks. Hence, they are each connected to 1x1 Conv layers which ensure that all the output blocks output features (named $P_3, P_4, \ldots, P_7$) with the same feature depth.</p>
+
+<p>The permuted ordering of blocks at different scales and the multiple input connections to each block from multiple blocks of potentially different scales allow the network to learn robust multi-scale features. Additionally, the authors also try out certain block adjustments to improve performance.</p>
+
+<h3 id="a-closer-look-at-cross-scale-connections">
+<a class="anchor" href="#a-closer-look-at-cross-scale-connections" aria-hidden="true"><span class="octicon octicon-link"></span></a>A closer look at cross-scale connections</h3>
+<p>In regular scale decreasing convolutional networks, the convolutional layers are designed such that the size of the output feature map of one layer matches the input feature size expected by the subsequent layer. This is ensured by picking the right stride lengths and sometimes by using pooling layers downsample the feature maps as needed. If there are multiple inputs from different layers going into a layer, the inputs are designed to be of the same resolution so that they can be added and sent into the next layer.</p>
+
+<p>But the feature map sizes may not match so easily with scale permuted layers as the subsequent layer may have a wide variety of input resolutions. Providing input from multiple layers is also an issue as the two input features may not be of the same resolution in a scale permuted network. Hence the input features are first processed to have the same input feature length ($\alpha C_{in}$, where $\alpha$ is a scaling parameter), after which spatial resampling (i.e. the spatial resolution is changed) is performed using nearest neighbour upsampling or downsampled using a 3x3 Conv with stride 2 followed by a max-pooling operation. These features are now passed through another 1x1 Conv to make sure that the output feature depth is of a compatible value. The feature vectors are now added together before being sent to the next layer.</p>
+
+<p width="100%"><img src="/blog/images/SpineNet/cross_scale.png" alt="Cross scale connections image" title="An illustration of scale decreasing and scale permuted feature blocks. (source: [0])"></p>
+
+<h2 id="building-or-learning-scale-permuted-architectures">
+<a class="anchor" href="#building-or-learning-scale-permuted-architectures" aria-hidden="true"><span class="octicon octicon-link"></span></a>Building (or learning) scale-permuted architectures</h2>
+<p>A natural complication that arises when trying to build a network with a scale permuted architecture is finding an optimal permutation of blocks to solve the task at hand. Due to a large number of permutations possible within the feature blocks, it’s prohibitively expensive to either hand-design an optimal architecture or try out every permutation in the search space. This problem is alleviated by learning the optimal permutation using Neural Architecture Search.</p>
+
+<p>When using NAS, the entire network architecture is learnt in a three-step process to simplify the procedure:
+    1. Learn an optimal permutation of feature blocks of different scales.
+    2. Learn a set of optimal cross-scale connections between the blocks.
+    3. Optionally optimize the learnt architecture by learning a set of block adjustments for each block.</p>
+
+<h3 id="search-space-for-learning-the-optimal-architecture">
+<a class="anchor" href="#search-space-for-learning-the-optimal-architecture" aria-hidden="true"><span class="octicon octicon-link"></span></a>Search space for learning the optimal architecture</h3>
+<p>When designing a meta-architecture for a neural network, one needs to ensure that the search space for the learned model architecture is kept reasonably small to reduce the amount of compute and memory resources required to search for or learn the optimal model. This paper identifies and places constraints on three significant factors that decide the size of the search space for learning scale permuted architectures.</p>
+
+<h4 id="scale-permutations">
+<a class="anchor" href="#scale-permutations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Scale permutations</h4>
+<p>Since a block in any given ordering of blocks can only connect to blocks that come before it in that ordering, the exact arrangement of blocks becomes vital as this decides which cross-scale connections the final network may have.
+If the scale permuted network had N blocks, this would mean we would have to try out N! different permutations before we could find the optimal ordering. In this paper, the authors significantly reduce the size of the search space by restricting blocks permutations to the set of intermediate and output blocks. In other words, the 5 output blocks and the N-5 intermediate blocks are permuted among themselves. This brings down the size of the search space to (N-5)!5!</p>
+
+<h4 id="cross-scale-connections">
+<a class="anchor" href="#cross-scale-connections" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cross-scale connections</h4>
+<p>If any given block were allowed to receive input from any arbitrary block before it, there would be $2^i$ connection patterns the $i$th block could have. This would mean the number of connection patterns for the entire network would be $2^{N-1}$.
+The authors thus restrict each block to have only two cross-scale input connections, which significantly brings down the size of the search space to $\displaystyle\prod_{i=m}^{N+m-1} {^iC_2}$.</p>
+
+<h4 id="block-adjustments">
+<a class="anchor" href="#block-adjustments" aria-hidden="true"><span class="octicon octicon-link"></span></a>Block adjustments</h4>
+<p>Since the initially selected list of blocks may not be the optimal choice of blocks to be used when building a scale permuted model, the authors further allow NAS to search through a small set of block adjustment options to improve efficiency. The authors allow two types of adjustments to the scale permuted blocks:</p>
+<ol>
+  <li>Level adjustment: 
+  The authors allow the intermediate blocks to deviate from the current level they are in by {-1, 0, 1, 2}. This results in a search space size of $4^{N-5}$.</li>
+  <li>Type adjustment:
+ The authors also allow every block to take one of the two types: { bottleneck block (default), residual block }. This results in a search space size of $2^N$. Residual blocks pass on the inputs they have received, along with their outputs. This allows blocks further down the line to utilize features from more than two previous blocks if needed.</li>
+</ol>
+
+<h2 id="experiments-and-results">
+<a class="anchor" href="#experiments-and-results" aria-hidden="true"><span class="octicon octicon-link"></span></a>Experiments and Results</h2>
+<p>The authors of the paper test a multitude of models using the scale permuted architecture on Object detection and image classification. The models they test are mainly of two types:</p>
+<ol>
+  <li>Scale permuted ResNets</li>
+  <li>Custom SpineNet models that can take full advantage of the scale permuted architecture</li>
+</ol>
+
+<h3 id="scale-permuted-resnet-50">
+<a class="anchor" href="#scale-permuted-resnet-50" aria-hidden="true"><span class="octicon octicon-link"></span></a>Scale permuted ResNet-50</h3>
+<p><img src="/blog/images/SpineNet/scale_permuted_resnet.png" alt="Scale permuted resnets" title="An illustration of the scale permuted resnets with a scale decreasing stem network attached to a scale permuted component, along with their performance on the COCO dataset. (source: [0])">
+The authors train and test a few models based on the original ResNet-50 architecture to study the effects of scale permutation on model performance on vision-related tasks.</p>
+
+<p>These models were built by allocating a part of the original ResNet-50 blocks to a scale decreasing stem network and allocating the rest to the scale permuted section of the network. These models are named as R[$N$]-SP[$M$] to indicate that the model has $N$ feature layers in the stem network and $M$ layers in the scale permuted part of the network. A tabulation of the models trained and the block allocations are listed below:</p>
+
+<table style="margin-left: 10%;font-size: 100%;">
+  <thead>
+    <tr>
+      <th>Model</th>
+      <th>Stem network {$L_2, L_3, L_4, L_5$}</th>
+      <th>scale-permuted network {$L_2, L_3, L_4, L_5, L_6, L_7$}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>R50</td>
+      <td>{3,4,6,3}</td>
+      <td>{-}</td>
+    </tr>
+    <tr>
+      <td>R35-SP18</td>
+      <td>{2,3,5,1}</td>
+      <td>{1,1,1,1,1,1}</td>
+    </tr>
+    <tr>
+      <td>R23-SP30</td>
+      <td>{2,2,2,1}</td>
+      <td>{1,2,4,1,1,1}</td>
+    </tr>
+    <tr>
+      <td>R14-SP39</td>
+      <td>{1,1,1,1}</td>
+      <td>{2,3,5,1,1,1}</td>
+    </tr>
+    <tr>
+      <td>R0-SP53</td>
+      <td>{2,0,0,0}</td>
+      <td>{1,4,6,2,1,1}</td>
+    </tr>
+    <tr>
+      <td>SpineNet-49</td>
+      <td>{2,0,0,0}</td>
+      <td>{1,2,4,4,2,2}</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>By gradually increasing the fraction of the ResNet-50 blocks allocated to the scale permuted sections, the authors study the benefits of the scale permuted architecture. Since they make use of the same feature blocks present in the regular ResNet-50, they ensure that the amount of compute used by the proposed models remains the same and that any improvements seen are solely due to the scale permutation introduced.</p>
+
+<p>The search space for these models only includes models with varying block permutations and cross-scale permutations and block adjustments have been avoided. However, a small adaptation was introduced to the scale permuted models to allow generating multi-scale outputs. The adaption involves removing one $L_5$ block from the set of blocks available and adding an $L_6$ and $L_7$ block and setting the output feature dimensions to 256 for $L_5$, $L_6$ and $L_7$ blocks. These adaptations are necessary to be able to follow the general architecture mentioned earlier.</p>
+
+<p>After testing these models on the object detection on the COCO dataset, the authors observed that as more blocks were allocated to the scale permuted section, the performance of the network improved. The SpineNet-49 model, which was learnt with block adjustments enabled, performed the best as it was able to change the blocks it was using in order to take full advantage of the scale permuted architecture.</p>
+
+<p>This experiment, in my opinion, clearly shows the effectiveness of the scale permuted architecture.</p>
+
+<h3 id="spinenets">
+<a class="anchor" href="#spinenets" aria-hidden="true"><span class="octicon octicon-link"></span></a>SpineNets</h3>
+<p>The authors also recognize that the scale permuted ResNets aren’t the best showcase of the potential of a scale permuted architecture as the feature blocks used by ResNets are likely to be suboptimal choices for training scale permuted networks. Therefore, they train another set of models called SpineNets, which were also learnt using NAS. However, while learning these architectures, block adjustment was also introduced into the search space, on top of scale permutation and cross-scale connections. This allows choosing a more optimal set of blocks to take advantage of the scale permuted architecture.</p>
+
+<h4 id="generating-larger-spinenets">
+<a class="anchor" href="#generating-larger-spinenets" aria-hidden="true"><span class="octicon octicon-link"></span></a>Generating larger SpineNets</h4>
+<p>The larger SpineNet models are generated from the base SpineNet-49 architecture instead of using NAS to relearn the block permutations and cross-scale connections as using NAS is also computationally expensive. This is done by using a technique called ‘block repeat’.</p>
+
+<p width="100%"><img src="/blog/images/SpineNet/block_repeat.png" alt="Block repeat illustration" title="Illustration of how block repeat works. (source: [0])"></p>
+
+<p>The block repeat method works by repeating each feature block in the model multiple times. When a given block $B_k$ is repeated, the repeated instances are connected sequentially. The input going into $B_k$ is connected to the first block in the new group. The output of the last block in the repeated group is sent to all the subsequent blocks that were previously taking the output of $B_k$ as input.</p>
+<h3 id="object-detection-and-instance-segmentation">
+<a class="anchor" href="#object-detection-and-instance-segmentation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Object detection and instance segmentation</h3>
+<p>The authors also tested the scale permuted architecture on object detection and instance segmentation tasks by using SpineNets as a backbone model for RetinaNet and Mask-RCNN. Here they once again they found that SpineNets perform better when compared to ResNet-FPNs as they use a scale permuted architecture.</p>
+
+<h4 id="single-stage-object-detection-with-retinanet">
+<a class="anchor" href="#single-stage-object-detection-with-retinanet" aria-hidden="true"><span class="octicon octicon-link"></span></a>Single-stage object detection with RetinaNet</h4>
+<p>RetinaNet is a single-stage network for object detection. It utilizes an FPN as a backbone model to extract multi-scale features. It then passes it to two different subnets for classifying objects and locating them. Single-stage detectors often work by sampling many regions within an image as per a pre-defined policy and trying to find objects within them. A large number of regions sampled have no object in them, which makes it harder to train the network due to the imbalance between the individual classes and no object regions. The RetinaNet model handles this by using a focal-loss that increases the weightage given to rare classes, thereby alleviating the imbalance problem.</p>
+
+<p>The authors use a SpineNet as a backbone for a RetinaNet and train the system to recognize objects and draw bounding boxes around them using the popular COCO dataset. Their experiments show that SpineNets outperform other backbone network architectures such as ResNet-FPN and NAS-FPN in both accuracy and efficiency.
+<img src="/blog/images/SpineNet/RetinaNet_graph.png" alt="Object detection results graph" title="Performance of scale permuted and scale decreasing models on the COCO dataset. (source: [0])"></p>
+
+<h4 id="two-stage-object-detection-with-mask-rcnn">
+<a class="anchor" href="#two-stage-object-detection-with-mask-rcnn" aria-hidden="true"><span class="octicon octicon-link"></span></a>Two-stage object detection with Mask-RCNN</h4>
+<p>Mask-RCNN is a two-stage detector model. It too uses an FPN model as a backbone to generate feature maps from an image. However, it passes these features to two separate networks. The first network scans these features and gives out region proposals or regions of interest. The generated ROI is combined with the image features and given to the second network, which looks at features in the ROIs to predict object classes, bounding boxes and segmentation masks.</p>
+
+<p>In line with the previous experiment, the authors have also trained Mask-RCNN models with various scale-decreasing models and SpineNets as backbones. Here too, SpineNets outperform their scale-decreasing counterparts by a large margin. Moreover, they do so while also being smaller in size.</p>
+
+<h4 id="real-time-object-detection">
+<a class="anchor" href="#real-time-object-detection" aria-hidden="true"><span class="octicon octicon-link"></span></a>Real-time object detection</h4>
+<p>Unlike the previous two experiments, where the performance of SpineNets with its predecessors were compared, here the authors instead quantify the inference latency that can be achieved when using SpineNet models of different sizes in an end-to-end object detection pipeline running with NVIDIA Tensor RT on a V100 GPU.</p>
+
+<p>The end to end pipeline performs additional steps like pre-processing, bounding box and score generation, post-processing and non-maximum suppression along with running the object detection model. The authors were able to run this pipeline in real-time, at over 30 frames per second.</p>
+
+<h3 id="image-classification">
+<a class="anchor" href="#image-classification" aria-hidden="true"><span class="octicon octicon-link"></span></a>Image classification</h3>
+<p>Although improving image classification performance was not the primary goal of the SpineNet architecture, the authors have nevertheless tested SpineNet’s performance on image classification. They train and test SpineNet based image classifiers on two datasets, namely the popular ImageNet dataset and a more challenging dataset named the iNaturalist dataset. The iNaturalist dataset is a fine-grained classification dataset that requires networks to detect and classify different species of plants and animals. The dataset is extremely challenging because the classes are imbalanced and different classes are extremely similar visually. The dataset has over 5000 species of plants and animals.</p>
+
+<p width="100%"><img src="/blog/images/SpineNet/iNaturalistExample.png" alt="iNaturalist data example" title="Example of two visually similar classes in the iNaturalist dataset (source: [2])"></p>
+
+<p>The experiments showed that SpineNet models can match the performance of a ResNet on the ImageNet dataset while using much fewer FLOPs. On the more challenging iNaturalist dataset SpineNets outperform ResNets by a large margin.</p>
+
+<p>On the iNaturalist dataset, the authors found that there is an almost 5% improvement in Top-1 classification accuracy. To explain this improvement, the authors generate a new dataset from the iNaturalist dataset (named iNaturalist-bbox) in which each image consists of only the object to be detected cropped out and centered in the image, with only a small amount of the original image around it to provide local context. This ensures that all the objects are now visible in the same scale, which means both SpineNets and ResNets should perform equally well when trained to classify on this dataset, if the original improvement was due to SpineNet’s ability to detect objects at different scales. The results obtained are tabulated below.</p>
+
+<table style="margin-left: 35%;font-size: 100%;">
+  <thead>
+    <tr>
+      <th>Model</th>
+      <th>Top-1%</th>
+      <th>Top-5%</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>SpineNet-49</td>
+      <td>63.9</td>
+      <td>86.9</td>
+    </tr>
+    <tr>
+      <td>ResNet-50</td>
+      <td>59.6</td>
+      <td>83.3</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Here we see that even on the modified dataset, SpineNet-49 shows an improvement of approximately 4.3% in Top-1 classification accuracy, even though all the objects are of the same scale. The authors suggest that the classification accuracy may have improved because SpineNet is able to extract fine-grained details from the image with allows to classify between classes that only have very subtle differences and also because it could use a more compact feature representation which makes it more robust against overfitting.</p>
+
+<h2 id="conclusion">
+<a class="anchor" href="#conclusion" aria-hidden="true"><span class="octicon octicon-link"></span></a>Conclusion</h2>
+<p>In the SpineNet paper, the authors have identified a problem that exists in the current models that are being used for object detection and related computer vision tasks and have come up with an innovative solution to solve the identified issues. They use thoughtful experiments to show that their architectural improvements do indeed lead to noticeable performance improvement, and show how more optimizations can be made to take full advantage of the scale permuted architecture.</p>
+
+<h3 id="key-takeaways">
+<a class="anchor" href="#key-takeaways" aria-hidden="true"><span class="octicon octicon-link"></span></a>Key Takeaways</h3>
+<p>To summarize, the key takeaways from the paper are:</p>
+<ol>
+  <li>Current scale decreasing models are suboptimal for solving computer vision tasks such as object detection where resolution information is essential.</li>
+  <li>Using the scale permuted architecture introduced by the authors can lead to more optimal networks, that are more efficient and perform better on object detection and related tasks.</li>
+  <li>The improvements brought about using a scale permuted model translates to tasks like fine-grained image classification, where resolution isn’t important for the final classification, but can still help in extracting fine-grained features.</li>
+</ol>
+
+<h2 id="references">
+<a class="anchor" href="#references" aria-hidden="true"><span class="octicon octicon-link"></span></a>References</h2>
+<ul>
+  <li>[0] X. Du et al., “SpineNet: Learning Scale-Permuted Backbone for Recognition and Localization”, <em>IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</em>, 2020. Available: 10.1109/cvpr42600.2020.01161.</li>
+  <li>[1] T. Lin, P. Goyal, R. Girshick, K. He and P. Dollar, “Focal Loss for Dense Object Detection”, <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em>, vol. 42, no. 2, pp. 318-327, 2020. Available: 10.1109/tpami.2018.2858826.</li>
+  <li>[2] G. Van Horn et al., “The iNaturalist Species Classification and Detection Dataset”, <em>2018 IEEE/CVF Conference on Computer Vision and Pattern Recognition</em>, 2018. Available: 10.1109/cvpr.2018.00914.</li>
+</ul>
+
+  </div><!-- from https://github.com/utterance/utterances -->
+<script src="https://utteranc.es/client.js"
+        repo="Chaitanya-git/blog"
+        issue-term="title"
+        label="blogpost-comment"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script><a class="u-url" href="/blog/research/computer%20vision/deep%20learning/2020/09/01/spinenets.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>A blog about anything I might be interested in</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/Chaitanya-git" title="Chaitanya-git"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://www.linkedin.com/in/chaitanya21999" title="chaitanya21999"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#linkedin"></use></svg></a></li><li><a rel="me" href="https://twitter.com/linuxgeek121" title="linuxgeek121"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

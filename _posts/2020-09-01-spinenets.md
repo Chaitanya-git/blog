@@ -9,7 +9,7 @@ description: "An overview and analysis of the paper \"SpineNet: Learning Scale-P
 ---
 
 ## Introduction
-Ever since their introduction in 2012, Convolutional Neural Networks have slowly become the cornerstone for solving computer vision tasks with deep learning. They have worked phenomenally well for several vision-related tasks such as image classification, object detection and instance segmentation. They have since also been applied successfully in Natural Language Processing tasks such as sentiment analysis.
+Convolutional Neural Networks have slowly become the cornerstone for solving computer vision tasks with deep learning. They have worked phenomenally well for several vision-related tasks such as image classification, object detection and instance segmentation. They have since also been applied successfully in Natural Language Processing tasks such as sentiment analysis.
 
 However, the fundamental network architecture of convolutional networks have primarily remained the same, with each layer producing a feature map of increasingly lower resolution, but higher depth. Such an architecture has allowed CNNs to efficiently extract a large number of high-level features from images while keeping resource requirements under check while without compromising performance.
 
